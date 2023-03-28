@@ -23,27 +23,6 @@ from main.weaver import Weaver_e_office_userlogin,E_office_upload,Weaver_e_offic
 def now_time():
     return time.strftime("[%H:%M:%S] ", time.localtime())
 
-
-class Logger(object):
-    def __init__(self, filename='default.log', add_flag=True, stream=sys.stdout):
-        self.terminal = stream
-        print("filename:", filename)
-        self.filename = filename
-        self.add_flag = add_flag
-        self.log = open(filename, 'a+')
-
-    def write(self, message):
-    	if self.add_flag:
-	        with open(self.filename, 'a+') as log:
-	            self.terminal.write(message)
-	            log.write(message)
-
-
-    def flush(self):
-        pass
-        
-def logPath():        
-    sys.stdout = Logger("report.log", sys.stdout)
     
 def Deal(target_url): 
     if target_url[:4] != 'http':
@@ -90,28 +69,6 @@ def tdoa(target_url):
     	res.append(eval(poc + ".main(target_url)"))
     res.append(['[INFO]: 结束扫描 {}'.format(target_url)])
     return res
-
-'''
-
-def main():
-    target_url='127.0.0.1'
-    Deal(target_url)
-    poc_list =  ['通达OA_v11_5_swfupload_sql', '通达OA_v11_5_任意用户登录','通达OA_v11_6_insert_sql',
-                '通达OA_v11_6_report_bi_sql', '通达OA_v11_6_任意文件删除_RCE', '通达OA_v11_7_后台sql注入',
-                '通达OA_v11_7_在线用户登录', '通达OA_v11_8_api_任意文件上传', '通达OA_v11_8_getway_远程文件包含',
-                '通达OA_v2014_get_contactlist', '通达OA_v2017_action_upload', '通达OA_v2017_任意用户登录','通达OA_v11_8_logincheck','通达OA_v11_8_后台包含xss','通达OA_v11_9_getdata']
-    print(target_url)
-    res = []
-    for poc in poc_list:
-        res.append(eval(poc + ".main(target_url)"))
-        time.sleep(0.2)
-    return res
-
-
-'''
-
-
-
     
 def whoa(target_url):
     Deal(target_url)     
@@ -148,8 +105,3 @@ def fwoa(target_url):
     	res.append(eval(poc + ".main(target_url)"))
     res.append(['[INFO]: 结束扫描 {}'.format(target_url)])
     return res
-
-'''
-if __name__ == '__main__':
-    main()
-'''
