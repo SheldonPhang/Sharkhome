@@ -19,6 +19,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QProgressBar,
     QVBoxLayout,
+    QInputDialog,
     QTextBrowser
 )
 from report_generator import generate_report  # 导入报告生成函数
@@ -49,6 +50,10 @@ class MainWindow(QMainWindow):
         top_layout = QGridLayout()
         main_layout.addLayout(top_layout)
 
+        #添加按钮
+        self.add_poc_button = QPushButton("添加新的漏洞")
+        self.add_poc_button.clicked.connect(self.add_poc)
+        top_layout.addWidget(self.add_poc_button, 2, 2)
         # Row 0
         self.url_label = QLabel("Url:")
         self.url_input = QLineEdit()
@@ -122,7 +127,32 @@ class MainWindow(QMainWindow):
         t = threading.Thread(target=self.scan, args=(url, self.oa_combobox.currentText(), user))
         t.start()
 
+    # 添加槽函数
+    def add_poc(self):
+        # 弹出对话框选择 POC 文件
+        options = QFileDialog.Options()
+        options |= QFileDialog.ReadOnly
+        file_name, _ = QFileDialog.getOpenFileName(self, "选择 POC 文件", "", "Python Files (*.py)", options=options)
+        
+        if file_name:
+            # 弹出对话框选择 OA 类型
+            oa_types = ["通达OA", "泛微OA", "用友OA", "致远OA", "蓝凌OA", "万户OA"]
+            oa_type, ok_pressed = QInputDialog.getItem(self, "选择添加POC的OA 类型", "OA 类型:", oa_types, 0, False)
+            
+            if ok_pressed:
+                # 将 POC 文件复制到相应的目录
+                base_dir = "main"  # 这里可以根据实际情况修改
+                type_dirs = {"通达OA": "Anywhere", "泛微OA": "weaver", "用友OA": "yongyou", "致远OA": "seeyou", "蓝凌OA": "Landray", "万户OA": "ezoffice"}
+                target_dir = os.path.join(base_dir, type_dirs[oa_type])
 
+                if not os.path.exists(target_dir):
+                    os.makedirs(target_dir)
+
+                dest_file = os.path.join(target_dir, os.path.basename(file_name))
+                with open(file_name, "r") as src_file, open(dest_file, "w") as dst_file:
+                    dst_file.write(src_file.read())
+
+                self.result_text.append(f"已添加新的漏洞 POC 文件: {os.path.basename(file_name)} (OA 类型: {oa_type})")
 
     def get_file_path(self):
         file_path, _ = QFileDialog.getOpenFileName(self, '选择文件', os.getcwd(), 'Text files(*.txt)')
