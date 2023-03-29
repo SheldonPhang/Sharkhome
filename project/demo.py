@@ -4,6 +4,7 @@ import time
 import sys
 import os
 from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
     QApplication,
     QLabel,
@@ -20,7 +21,7 @@ from PyQt5.QtWidgets import (
     QProgressBar,
     QVBoxLayout,
     QInputDialog,
-    QTextBrowser
+    QTextBrowser,
 )
 from report_generator import generate_report  # 导入报告生成函数
 
@@ -38,6 +39,8 @@ class MainWindow(QMainWindow):
         self.result_text.moveCursor(self.result_text.textCursor().End)
     def init_ui(self):
         self.setWindowTitle("OA漏扫工具")
+        self.setWindowIcon(QIcon('\\images\\1.ico'))
+
         self.setGeometry(300, 300, 1000, 600)
         self.setFixedSize(1000, 600)
 
@@ -149,10 +152,11 @@ class MainWindow(QMainWindow):
                     os.makedirs(target_dir)
 
                 dest_file = os.path.join(target_dir, os.path.basename(file_name))
-                with open(file_name, "r") as src_file, open(dest_file, "w") as dst_file:
+                with open(file_name, "r", encoding="utf-8") as src_file, open(dest_file, "w", encoding="utf-8") as dst_file:
                     dst_file.write(src_file.read())
 
                 self.result_text.append(f"已添加新的漏洞 POC 文件: {os.path.basename(file_name)} (OA 类型: {oa_type})")
+                QMessageBox.information(self, "添加成功", f"已添加新的漏洞 POC 文件: {os.path.basename(file_name)} (OA 类型: {oa_type})")
 
     def get_file_path(self):
         file_path, _ = QFileDialog.getOpenFileName(self, '选择文件', os.getcwd(), 'Text files(*.txt)')
