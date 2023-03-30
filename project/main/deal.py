@@ -40,9 +40,13 @@ def run_pocs(pocs, target_url):
     res_queue.put('[INFO]: 开始扫描 {}'.format(target_url))
     for poc in pocs:
         if hasattr(poc, 'main'):
-            res_queue.put(poc.main(target_url))
+            result = poc.main(target_url)
+            if result:
+                res_queue.put(result)
         elif hasattr(poc, 'check'):
-            res_queue.put(poc.check(target_url))
+            result = poc.check(target_url)
+            if result:
+                res_queue.put(result)
     res_queue.put('[INFO]: 结束扫描 {}'.format(target_url))
 
 def Deal(target_url): 
