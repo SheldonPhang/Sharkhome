@@ -4,7 +4,6 @@ import datetime
 import multiprocessing
 import socket, socks
 import config_file as cfg_file
-'''import main.deal'''
 import main.deal
 
 
@@ -13,7 +12,6 @@ def fileDeal(target, name):
     try:
         lines = file_object.readlines()
         pool = multiprocessing.Pool()
-        # 使用 map 方法代替 apply 方法````````````````````
         results = pool.map(name, [url.strip('\n') for url in lines])
         pool.close()
         pool.join()
@@ -28,17 +26,6 @@ def fileDeal(target, name):
 def urlDeal(target,name):
     try:
         res = name(target)
-#        print(res[0],res[2],res[3],res[4],res[5])
         return res
     except KeyboardInterrupt:
         print('\nCTRL+C 退出')
-
-'''if __name__== "__main__" :
-    main()'''
-        
-
-
-
-    
-
-    
