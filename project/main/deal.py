@@ -5,6 +5,7 @@ import time
 import config_file as cfg_file
 import pkgutil
 import importlib
+from queue import Queue
 import main
 from main.yonyou import nc_beanshell_rce,nc_upload_rce,nc_erp_sql,nc_u8_test_sql,nc_erp_directory
 from main.yonyou import 用友畅捷通T_updata_任意文件上传,nc_U8_getSessionList,fe_oa_directiry, nc_readfile_everything,nc_xbr_rce,用友_U8_f5_sql,用友GRP_u8_upload_data,yongyou_KSOA_imageupload
@@ -20,6 +21,9 @@ from main.weaver import Weaver_Common_Ctrl_Upload,WorkflowCenterTreeData_Sql,Wea
 from main.weaver import Weaver_e_office_userlogin,E_office_upload,Weaver_e_officeserver_readfile,E_office_group_xml_sql,E_Cology_user_data,E_Cology_LoginsSSo_sql,E_Cology_getData_sql,泛微OA_hrmcareerApply_sql,泛微OA_jquery_filetree,泛微OA_Verify_QuickLogin,泛微OA_mysql_config数据库信息泄漏,泛微OA_signnature_任意文件访问,泛微OA_uploader_OPerate,泛微OA_V10_前台sql,泛微OA_doexcel,泛微OA_ktree_upload,泛微OA_v10_upload,泛微OA_eoffice8_upload,泛微OA_moblie_v6_sql
 from main.useradd import testoa
 
+res_queue = Queue()
+
+
 def import_and_get_pocs(module):
     pocs = []
     for _, name, _ in pkgutil.iter_modules(module.__path__):
@@ -33,14 +37,13 @@ def now_time():
     return time.strftime("[%H:%M:%S] ", time.localtime())
 
 def run_pocs(pocs, target_url):
-    res = [['[INFO]: 开始扫描 {}'.format(target_url)]]
+    res_queue.put('[INFO]: 开始扫描 {}'.format(target_url))
     for poc in pocs:
         if hasattr(poc, 'main'):
-            res.append(poc.main(target_url))
+            res_queue.put(poc.main(target_url))
         elif hasattr(poc, 'check'):
-            res.append(poc.check(target_url))
-    res.append(['[INFO]: 结束扫描 {}'.format(target_url)])
-    return res
+            res_queue.put(poc.check(target_url))
+    res_queue.put('[INFO]: 结束扫描 {}'.format(target_url))
 
 def Deal(target_url): 
     if target_url[:4] != 'http':
