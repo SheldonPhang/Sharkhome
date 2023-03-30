@@ -39,7 +39,8 @@ class MainWindow(QMainWindow):
         self.result_text.moveCursor(self.result_text.textCursor().End)
     def init_ui(self):
         self.setWindowTitle("OA漏扫工具")
-        self.setWindowIcon(QIcon('\\images\\1.ico'))
+        self.setWindowIcon(QIcon('images/xg.ico'))
+
 
         self.setGeometry(300, 300, 1000, 600)
         self.setFixedSize(1000, 600)
@@ -58,19 +59,19 @@ class MainWindow(QMainWindow):
         self.add_poc_button.clicked.connect(self.add_poc)
         top_layout.addWidget(self.add_poc_button, 2, 2)
         # Row 0
-        self.url_label = QLabel("Url:")
+        self.url_label = QLabel("Target:")
         self.url_input = QLineEdit()
         self.url_input.setPlaceholderText("请输入URL")
         self.url_input.returnPressed.connect(self.start_scan)
 
-        self.file_button = QPushButton("选择文件")
+        self.file_button = QPushButton("批量输入")
         self.file_button.clicked.connect(self.select_file)
         self.file_path = ''
         # Row 1
         self.oa_label = QLabel("OA类型:")
         self.oa_combobox = QComboBox()
-        self.oa_combobox.addItems(["通达OA", "泛微OA", "用友OA", "致远OA", "蓝凌OA", "万户OA"])
-        self.oa_combobox.setCurrentIndex(1)
+        self.oa_combobox.addItems(["蓝凌OA", "万户OA","用友OA", "致远OA", "通达OA", "泛微OA","自定义" ])
+        self.oa_combobox.setCurrentIndex(0)
 
         self.start_button = QPushButton("开始扫描")
         self.start_button.clicked.connect(self.start_scan)
@@ -139,13 +140,13 @@ class MainWindow(QMainWindow):
         
         if file_name:
             # 弹出对话框选择 OA 类型
-            oa_types = ["通达OA", "泛微OA", "用友OA", "致远OA", "蓝凌OA", "万户OA"]
+            oa_types = ["通达OA", "泛微OA", "用友OA", "致远OA", "蓝凌OA", "万户OA", "自定义"]
             oa_type, ok_pressed = QInputDialog.getItem(self, "选择添加POC的OA 类型", "OA 类型:", oa_types, 0, False)
             
             if ok_pressed:
                 # 将 POC 文件复制到相应的目录
                 base_dir = "main"  # 这里可以根据实际情况修改
-                type_dirs = {"通达OA": "Anywhere", "泛微OA": "weaver", "用友OA": "yongyou", "致远OA": "seeyou", "蓝凌OA": "Landray", "万户OA": "ezoffice"}
+                type_dirs = {"通达OA": "Anywhere", "泛微OA": "weaver", "用友OA": "yongyou", "致远OA": "seeyou", "蓝凌OA": "Landray", "万户OA": "ezoffice", "自定义": "useradd"}
                 target_dir = os.path.join(base_dir, type_dirs[oa_type])
 
                 if not os.path.exists(target_dir):
@@ -175,6 +176,8 @@ class MainWindow(QMainWindow):
             res = main.mode.llpoc(user, url)
         elif oa_type == "万户OA":
             res = main.mode.whpoc(user, url)
+        elif oa_type == "自定义":
+            res = main.mode.addpoc(user, url)
         else:
             res = ['wrong input']
 
