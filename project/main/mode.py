@@ -32,6 +32,11 @@ def fwpoc(user, target):
     res=select(user,target,name)
     return res
 
+def addpoc(user, target):
+    name=main.deal.useraddoa
+    res=select(user,target,name)
+    return res
+
 def select(user, target, name):
     if user == 'url':
         res = []
