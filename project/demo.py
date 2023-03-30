@@ -36,6 +36,7 @@ class MainWindow(QMainWindow):
         self.init_ui()
         self.update_result_text_signal.connect(self.update_result_text)
         self.scan_finished_signal.connect(self.show_scan_finished_message)
+        self.res = []
     def update_result_text(self, text):
         self.result_text.insertPlainText(text + '\n\n')
         self.result_text.moveCursor(self.result_text.textCursor().End)
@@ -186,14 +187,20 @@ class MainWindow(QMainWindow):
     
     def update_output(self):
         while True:
-            res = get_results()
-            if res:
-                for item in res:
+            new_results = get_results()
+            if new_results:
+                for item in new_results:
+                    self.res.append(item)  # 将新的扫描结果添加到self.res中
                     self.update_result_text_signal.emit(str(item))
                     self.result_text.moveCursor(self.result_text.textCursor().End)
             time.sleep(1)
 
+    def append_text(self, text):
+        self.update_result_text_signal.emit(text)
+
     def scan(self, url, oa_type, user):
+
+        main.mode.output_func = self.append_text
         if oa_type == "通达OA":
             scanner = main.mode.tdpoc
         elif oa_type == "泛微OA":
@@ -212,11 +219,12 @@ class MainWindow(QMainWindow):
             scanner = lambda _: ['wrong input']
 
         if user == "urls":
-            res = main.main.fileDeal(url, scanner)
+            scanner(user, url)
         else:
-            res = [main.main.urlDeal(url, scanner)]
-        total_items = len(res)
-        for index, item in enumerate(res):
+            scanner(user, url)
+
+        total_items = len(self.res)
+        for index, item in enumerate(self.res):
             self.update_result_text_signal.emit(str(item))
             self.result_text.moveCursor(self.result_text.textCursor().End)
             time.sleep(1)
@@ -227,14 +235,13 @@ class MainWindow(QMainWindow):
         self.result_text.moveCursor(self.result_text.textCursor().End)
 
         # 生成报告
-        report_path = generate_report(res, oa_type)  # 调用报告生成函数
+        report_path = generate_report(self.res, oa_type)  # 调用报告生成函数
         self.scan_finished_signal.emit(report_path)
     def show_scan_finished_message(self, report_path):
         QMessageBox.information(self, "扫描完成", f"扫描完成。报告已保存至 {report_path}")
 
     def update_progress_bar(self, value):
         self.progress_bar.setValue(value)
-
 
 
 
