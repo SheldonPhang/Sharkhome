@@ -3,8 +3,10 @@ import main.mode
 import time
 import sys
 import os
+from main.mode import get_results
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon,QDesktopServices
+from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import (
     QApplication,
     QLabel,
@@ -95,12 +97,27 @@ class MainWindow(QMainWindow):
         self.progress_bar = QProgressBar()
         self.progress_signal.connect(self.update_progress_bar)
 
+        # 添加“如何使用”按钮
+        self.how_to_use_button = QPushButton("如何使用")
+        self.how_to_use_button.clicked.connect(self.open_readme)
+
         top_layout.addWidget(self.url_label, 0, 0)
         top_layout.addWidget(self.url_input, 0, 1)
         top_layout.addWidget(self.file_button, 0, 2)
         top_layout.addWidget(self.oa_label, 1, 0)
         top_layout.addWidget(self.oa_combobox, 1, 1)
         top_layout.addWidget(self.start_button, 1, 2)
+        top_layout.addWidget(self.status_label, 2, 0)
+        top_layout.addWidget(self.progress_bar, 2, 1)
+        top_layout.addWidget(self.add_poc_button, 2, 2)
+        top_layout.addWidget(self.how_to_use_button, 2, 3)
+
+    def update_status_label(self, status):
+        self.status_label.setText(f"状态：{status}")
+
+    def open_readme(self):
+        readme_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "readme.txt")
+        QDesktopServices.openUrl(QUrl.fromLocalFile(readme_path))
 
     def select_file(self):
         # 显示文件选择对话框
@@ -116,6 +133,7 @@ class MainWindow(QMainWindow):
 
     def start_scan(self):
         self.result_text.clear()  # 清空扫描结果
+        self.update_status_label("扫描中")  # 更新状态标签
         # 获取输入参数
         url = self.url_input.text().strip()
         if not url:
@@ -130,6 +148,8 @@ class MainWindow(QMainWindow):
         # 在子线程中执行扫描操作
         t = threading.Thread(target=self.scan, args=(url, self.oa_combobox.currentText(), user))
         t.start()
+        t2 = threading.Thread(target=self.update_output)
+        t2.start()
 
     # 添加槽函数
     def add_poc(self):
@@ -163,24 +183,38 @@ class MainWindow(QMainWindow):
         file_path, _ = QFileDialog.getOpenFileName(self, '选择文件', os.getcwd(), 'Text files(*.txt)')
         return file_path
 
+    
+    def update_output(self):
+        while True:
+            res = get_results()
+            if res:
+                for item in res:
+                    self.update_result_text_signal.emit(str(item))
+                    self.result_text.moveCursor(self.result_text.textCursor().End)
+            time.sleep(1)
+
     def scan(self, url, oa_type, user):
         if oa_type == "通达OA":
-            res = main.mode.tdpoc(user, url)
+            scanner = main.mode.tdpoc
         elif oa_type == "泛微OA":
-            res = main.mode.fwpoc(user, url)
+            scanner = main.mode.fwpoc
         elif oa_type == "用友OA":
-            res = main.mode.yypoc(user, url)
+            scanner = main.mode.yypoc
         elif oa_type == "致远OA":
-            res = main.mode.zypoc(user, url)
+            scanner = main.mode.zypoc
         elif oa_type == "蓝凌OA":
-            res = main.mode.llpoc(user, url)
+            scanner = main.mode.llpoc
         elif oa_type == "万户OA":
-            res = main.mode.whpoc(user, url)
+            scanner = main.mode.whpoc
         elif oa_type == "自定义":
-            res = main.mode.addpoc(user, url)
+            scanner = main.mode.addpoc
         else:
-            res = ['wrong input']
+            scanner = lambda _: ['wrong input']
 
+        if user == "urls":
+            res = main.main.fileDeal(url, scanner)
+        else:
+            res = [main.main.urlDeal(url, scanner)]
         total_items = len(res)
         for index, item in enumerate(res):
             self.update_result_text_signal.emit(str(item))
@@ -189,6 +223,7 @@ class MainWindow(QMainWindow):
             self.progress_signal.emit(int((index + 1) / total_items * 100))  # 发送信号更新进度条
 
         self.update_result_text_signal.emit(f'扫描结束{self.oa_combobox.currentText()}...')
+        self.update_status_label("扫描结束")  # 更新状态标签
         self.result_text.moveCursor(self.result_text.textCursor().End)
 
         # 生成报告
