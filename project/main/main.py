@@ -13,20 +13,19 @@ def fileDeal(target, name):
     try:
         lines = file_object.readlines()
         with ThreadPoolExecutor() as executor:
-            results = list(executor.map(lambda x: name(x, target), [url.strip('\n') for url in lines]))
+            results = list(executor.map(name, [url.strip('\n') for url in lines]))
+          #   results = list(executor.map(lambda x: name(x, target), [url.strip('\n') for url in lines]))
+
         return results
     except KeyboardInterrupt:
         print('\nCTRL+C 退出')
     finally:
         file_object.close()
 
-#            results = list(executor.map(lambda x: name(x, target), [url.strip('\n') for url in lines]))
-
-
-
 def urlDeal(target, name):
     try:
         return name(target)
     except KeyboardInterrupt:
         print('\nCTRL+C 退出')
+
 
