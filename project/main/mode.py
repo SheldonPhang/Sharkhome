@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 import main.main
 import main.deal
+from main.deal import res_queue
+
+
+
+def get_results():
+    results = []
+    while not res_queue.empty():
+        results.append(res_queue.get())
+    return results
 
 def yypoc(user, target):
     name=main.deal.yyoa
@@ -34,28 +43,13 @@ def fwpoc(user, target):
 
 def addpoc(user, target):
     name=main.deal.useraddoa
-    res=select(user,target,name)
+    res = select(user, target, name)
     return res
 
 def select(user, target, name):
     if user == 'url':
-        res = []
-        res = main.main.urlDeal(target, name)
-        return res
+        main.main.urlDeal(target, name)
     if user == 'urls':
-        res = []
-        res = main.main.fileDeal(target, name)
-        return res
-
-
-
-
-'''
-def select(user, target, name):
-    if user == 'url':
-        res = main.main.urlDeal(target, name)
-        for item in res:
-            print(item)  # 将每个元素逐个输出
-        return res
-if __name__ == '__main__':
-    select('url', '127.0.0.1', 'name')'''
+        main.main.fileDeal(target, name)
+    res = get_results()
+    return res
