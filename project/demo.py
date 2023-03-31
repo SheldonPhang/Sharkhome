@@ -22,6 +22,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QInputDialog,
     QTextBrowser,
+    QProgressDialog,
 )
 from report_generator import generate_report  # 导入报告生成函数
 
@@ -34,6 +35,9 @@ class MainWindow(QMainWindow):
         self.init_ui()
         self.update_result_text_signal.connect(self.update_result_text)
         self.scan_finished_signal.connect(self.show_scan_finished_message)
+    def open_readme(self):
+        readme_path = os.path.join(os.getcwd(), "readme.txt")
+        os.startfile(readme_path)
     def update_result_text(self, text):
         self.result_text.insertPlainText(text + '\n\n')
         self.result_text.moveCursor(self.result_text.textCursor().End)
@@ -58,6 +62,10 @@ class MainWindow(QMainWindow):
         self.add_poc_button = QPushButton("添加新的漏洞")
         self.add_poc_button.clicked.connect(self.add_poc)
         top_layout.addWidget(self.add_poc_button, 2, 2)
+        self.how_to_use_button = QPushButton("如何使用")
+        self.how_to_use_button.clicked.connect(self.open_readme)
+        top_layout.addWidget(self.how_to_use_button, 2, 3)
+
         # Row 0
         self.url_label = QLabel("Target:")
         self.url_input = QLineEdit()
@@ -91,6 +99,9 @@ class MainWindow(QMainWindow):
 
         # Row 3
         self.status_label = QLabel("状态：未扫描")
+        self.scan_status_label = QLabel("扫描状态：未扫描")
+        top_layout.addWidget(self.scan_status_label, 3, 0, 1, 3)
+
 
         self.progress_bar = QProgressBar()
         self.progress_signal.connect(self.update_progress_bar)
@@ -116,6 +127,16 @@ class MainWindow(QMainWindow):
 
     def start_scan(self):
         self.result_text.clear()  # 清空扫描结果
+        self.scan_status_label.setText("扫描状态：扫描中")
+
+        self.progress_dialog = QProgressDialog("处理中，请稍候...", "取消", 0, 100, self)
+        self.progress_dialog.setWindowTitle("扫描中")
+        self.progress_dialog.setWindowModality(Qt.WindowModal)
+        self.progress_dialog.setAutoClose(True)
+        self.progress_dialog.setAutoReset(True)
+        self.progress_dialog.canceled.connect(self.progress_dialog.close)
+        self.progress_signal.connect(self.progress_dialog.setValue)
+
         # 获取输入参数
         url = self.url_input.text().strip()
         if not url:
@@ -186,11 +207,12 @@ class MainWindow(QMainWindow):
             self.update_result_text_signal.emit(str(item))
             self.result_text.moveCursor(self.result_text.textCursor().End)
             time.sleep(1)
+            self.progress_dialog.show()
             self.progress_signal.emit(int((index + 1) / total_items * 100))  # 发送信号更新进度条
 
         self.update_result_text_signal.emit(f'扫描结束{self.oa_combobox.currentText()}...')
         self.result_text.moveCursor(self.result_text.textCursor().End)
-
+        self.scan_status_label.setText("扫描状态：扫描结束")
         # 生成报告
         report_path = generate_report(res, oa_type)  # 调用报告生成函数
         self.scan_finished_signal.emit(report_path)
