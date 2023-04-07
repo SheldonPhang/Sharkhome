@@ -46,4 +46,16 @@ def select(user, target, name):
         res = []
         res = main.main.fileDeal(target, name)
         return res
-    
+
+
+
+
+'''
+def select(user, target, name):
+    if user == 'url':
+        res = main.main.urlDeal(target, name)
+        for item in res:
+            print(item)  # 将每个元素逐个输出
+        return res
+if __name__ == '__main__':
+    select('url', '127.0.0.1', 'name')'''
