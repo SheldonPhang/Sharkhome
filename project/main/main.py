@@ -3,7 +3,6 @@ import sys
 import datetime
 import multiprocessing
 import socket, socks
-import config_file as cfg_file
 import main.deal
 
 
